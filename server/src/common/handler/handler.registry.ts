@@ -1,21 +1,22 @@
 import { Injectable } from '@nestjs/common';
+import { CommandRequest } from 'src/common/interfaces/function.interface';
 import { HandlerService } from 'src/common/service/handler.service';
 
 @Injectable()
 export class HandlerRegistry {
-  private handlers: Map<string, HandlerService> = new Map();
+  private handlers: Map<string, HandlerService<any>> = new Map();
 
-  registerHandler(method: string, service: HandlerService) {
+  registerHandler<T>(method: string, service: HandlerService<T>) {
     this.handlers.set(method, service);
   }
 
-  async executeHandler(method: string, ...args: any[]): Promise<any> {
-    const handlerService = this.handlers.get(method);
+  async executeHandler<T>(body: CommandRequest<T>): Promise<any> {
+    const handlerService = this.handlers.get(body.method);
     if (!handlerService) {
-      throw new Error(`Handler for method ${method} not found`);
+      throw new Error(`Handler for method ${body.method} not found`);
     }
 
-    // execute 메서드를 호출하고 결과 반환
-    return await handlerService.execute(...args);
+    // handlerService가 제네릭 타입을 받도록 수정
+    return await handlerService.execute(body);
   }
 }

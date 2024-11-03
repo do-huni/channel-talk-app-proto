@@ -4,7 +4,7 @@ import { AppService } from './app.service';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { SignatureInterceptor } from 'src/common/interceptor/signature.interceptor';
 import { HandlerRegistry } from 'src/common/handler/handler.registry';
-import { TutorialService } from 'src/tutorial/tutorial.service';
+import { TUTORIAL, TutorialService } from 'src/tutorial/tutorial.service';
 import { AppController } from 'src/app.controller';
 
 @Module({
@@ -17,7 +17,7 @@ import { AppController } from 'src/app.controller';
     {
       provide: APP_INTERCEPTOR,
       useFactory: () => {
-        const secretKey = process.env.SECRET_KEY;
+        const secretKey = process.env.CHANNEL_SECRET_KEY;
         return new SignatureInterceptor(secretKey);
       },
     },
@@ -29,6 +29,6 @@ export class AppModule implements OnModuleInit {
     private readonly tutorialService: TutorialService,
   ) {}
   onModuleInit() {
-    this.handlerRegistry.registerHandler('tutorial', this.tutorialService);
+    this.handlerRegistry.registerHandler(TUTORIAL, this.tutorialService);
   }
 }

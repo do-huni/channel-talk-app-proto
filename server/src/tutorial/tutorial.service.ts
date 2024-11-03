@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
+import { CommandRequest } from 'src/common/interfaces/function.interface';
 import { HandlerService } from 'src/common/service/handler.service';
+import { TutorialInput } from 'src/tutorial/tutorial.input';
+
+export const TUTORIAL = 'tutorial';
 
 @Injectable()
-export class TutorialService implements HandlerService {
-  execute(callerId: string): any {
-    const WAM_NAME = 'ExampleBot';
-    return {
-      message: `Tutorial executed by ${WAM_NAME} for callerId: ${callerId}`,
-    };
+export class TutorialService implements HandlerService<TutorialInput> {
+  execute(body: CommandRequest<TutorialInput>) {
+    return body;
   }
 }
