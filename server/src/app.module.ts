@@ -12,10 +12,14 @@ import { AppController } from 'src/app.controller';
   controllers: [AppController],
   providers: [
     AppService,
-
+    HandlerRegistry,
+    TutorialService,
     {
       provide: APP_INTERCEPTOR,
-      useClass: SignatureInterceptor,
+      useFactory: () => {
+        const secretKey = process.env.SECRET_KEY;
+        return new SignatureInterceptor(secretKey);
+      },
     },
   ],
 })
