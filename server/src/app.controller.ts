@@ -2,7 +2,7 @@ import { Controller, Post, Body, BadRequestException } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 import { HandlerRegistry } from 'src/common/handler/handler.registry';
 import { BaseInput } from 'src/common/interfaces/base.input';
-import { CommandRequest } from 'src/common/interfaces/function.interface';
+import { FunctionRequest } from 'src/common/interfaces/function.interface';
 
 @Controller('function')
 export class AppController {
@@ -14,7 +14,7 @@ export class AppController {
   })
   @ApiOkResponse({})
   @Post()
-  async handleFunction(@Body() body: CommandRequest<BaseInput>): Promise<any> {
+  async handleFunction(@Body() body: FunctionRequest<BaseInput>): Promise<any> {
     try {
       return await this.handlerRegistry.executeHandler(body);
     } catch (error) {

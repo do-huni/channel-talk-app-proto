@@ -1,5 +1,5 @@
-import { CommandRequest } from 'src/common/interfaces/function.interface';
+import { FunctionRequest } from 'src/common/interfaces/function.interface';
 
 export interface HandlerService<T> {
-  execute(body: CommandRequest<T>): Promise<any> | any;
+  execute(body: FunctionRequest<T>): Promise<any> | any;
 }

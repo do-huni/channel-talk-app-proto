@@ -71,7 +71,7 @@ export class Context {
   caller: Caller;
 }
 
-export class CommandRequest<T> {
+export class FunctionRequest<T> {
   @ApiProperty()
   readonly method: string;
 

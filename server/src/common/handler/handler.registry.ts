@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CommandRequest } from 'src/common/interfaces/function.interface';
+import { FunctionRequest } from 'src/common/interfaces/function.interface';
 import { HandlerService } from 'src/common/service/handler.service';
 
 @Injectable()
@@ -10,7 +10,7 @@ export class HandlerRegistry {
     this.handlers.set(method, service);
   }
 
-  async executeHandler<T>(body: CommandRequest<T>): Promise<any> {
+  async executeHandler<T>(body: FunctionRequest<T>): Promise<any> {
     const handlerService = this.handlers.get(body.method);
     if (!handlerService) {
       throw new Error(`Handler for method ${body.method} not found`);

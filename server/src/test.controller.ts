@@ -1,6 +1,5 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
-import { generateSignature } from 'src/common/util/util';
 
 @Controller()
 export class TestController {
