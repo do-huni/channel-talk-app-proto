@@ -1,4 +1,4 @@
-import { Module, OnModuleInit } from '@nestjs/common';
+import { Module, OnModuleInit, Logger } from '@nestjs/common';
 
 import { AppService } from './app.service';
 import { HandlerRegistry } from 'src/common/handler/handler.registry';
@@ -40,11 +40,21 @@ import { redisStore } from 'cache-manager-redis-yet';
   ],
 })
 export class AppModule implements OnModuleInit {
+  private readonly logger = new Logger(AppModule.name);
+
   constructor(
     private readonly handlerRegistry: HandlerRegistry,
+    private readonly channelApiService: ChannelApiService,
     private readonly tutorialService: TutorialService,
   ) {}
-  onModuleInit() {
-    this.handlerRegistry.registerHandler(TUTORIAL, this.tutorialService);
+
+  async onModuleInit() {
+    try {
+      this.logger.log('Registering TutorialService handler...');
+      this.handlerRegistry.registerHandler(TUTORIAL, this.tutorialService);
+    } catch (error) {
+      this.logger.error('Failed to initialize module', error.stack);
+      throw error;
+    }
   }
 }

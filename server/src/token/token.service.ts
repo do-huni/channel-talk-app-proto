@@ -4,6 +4,7 @@ import {
   HttpStatus,
   InternalServerErrorException,
   Inject,
+  Logger,
 } from '@nestjs/common';
 import axios from 'axios';
 import { Cache } from 'cache-manager';
@@ -14,7 +15,7 @@ export class TokenService {
   private readonly authUrl =
     'https://app-store-api.channel.io/general/v1/native/functions'; // Channel.io의 토큰 엔드포인트
   private readonly clientSecret = process.env.CHANNEL_SECRET_KEY;
-
+  private readonly logger = new Logger(TokenService.name);
   constructor(@Inject(CACHE_MANAGER) private readonly cacheManager: Cache) {}
 
   /**
@@ -27,17 +28,22 @@ export class TokenService {
     };
     tokens.accessToken = await this.getAccessToken();
     tokens.refreshToken = await this.getRefreshToken();
-    if (!tokens.accessToken) {
-      if (!tokens.refreshToken) {
-        tokens = await this.fetchNewTokens();
-      } else {
-        tokens = await this.refreshAccessToken();
-      }
-    }
-    await this.cacheManager.set('accessToken', tokens.accessToken);
-    await this.cacheManager.set('refreshToken', tokens.refreshToken);
-  }
 
+    if (!tokens.accessToken || !tokens.refreshToken) {
+      this.logger.debug('No tokens found, issuing new tokens.');
+      tokens = await this.fetchNewTokens();
+    } else if (!tokens.accessToken && tokens.refreshToken) {
+      this.logger.debug('Access token expired, refreshing token.');
+      tokens = await this.refreshAccessToken();
+    } else {
+      this.logger.debug('Tokens exist. Using cached tokens.');
+    }
+
+    await Promise.all([
+      this.cacheManager.set('accessToken', tokens.accessToken),
+      this.cacheManager.set('refreshToken', tokens.refreshToken),
+    ]);
+  }
   /**
    * access-token을 가져옵니다.
    */
@@ -72,6 +78,7 @@ export class TokenService {
         refreshToken: response.data.result.refreshToken,
       };
     } catch (error) {
+      this.logger.error('Error fetching new tokens', error.stack);
       throw new HttpException(error, HttpStatus.UNAUTHORIZED);
     }
   }
