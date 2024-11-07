@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { FunctionRequest } from 'src/common/interfaces/function.interface';
+import { BaseFunctionRequest } from 'src/common/interfaces/function.interface';
 import { HandlerService } from 'src/common/service/handler.service';
 
 @Injectable()
 export class HandlerRegistry {
-  private handlers: Map<string, HandlerService<any>> = new Map();
+  private handlers: Map<string, HandlerService<any, any>> = new Map();
 
-  registerHandler<T>(method: string, service: HandlerService<T>) {
+  registerHandler<T, O>(method: string, service: HandlerService<T, O>) {
     this.handlers.set(method, service);
   }
 
-  async executeHandler<T>(body: FunctionRequest<T>): Promise<any> {
+  async executeHandler<T>(body: BaseFunctionRequest<T>): Promise<any> {
     const handlerService = this.handlers.get(body.method);
     if (!handlerService) {
       throw new Error(`Handler for method ${body.method} not found`);

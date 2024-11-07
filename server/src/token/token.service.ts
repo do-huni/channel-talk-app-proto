@@ -40,8 +40,12 @@ export class TokenService {
     }
 
     await Promise.all([
-      this.cacheManager.set('accessToken', tokens.accessToken),
-      this.cacheManager.set('refreshToken', tokens.refreshToken),
+      this.cacheManager.set('accessToken', tokens.accessToken, 1000 * 60 * 30),
+      this.cacheManager.set(
+        'refreshToken',
+        tokens.refreshToken,
+        1000 * 60 * 60,
+      ),
     ]);
   }
   /**
@@ -73,6 +77,7 @@ export class TokenService {
       if (response.data.error) {
         throw new InternalServerErrorException(response.data.error);
       }
+      this.logger.debug('s');
       return {
         accessToken: response.data.result.accessToken,
         refreshToken: response.data.result.refreshToken,

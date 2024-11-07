@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import { Command } from 'src/common/interfaces/command';
+import { BaseFunctionRequest } from 'src/common/interfaces/function.interface';
 import { TokenService } from 'src/token/token.service';
 
 @Injectable()
@@ -59,11 +60,44 @@ export class ChannelApiService {
     }
   }
 
-  async isInitialized(): Promise<void> {
+  async waitForInitialization(): Promise<void> {
     if (this.initialized) return;
-    return this.initializationPromise;
+
+    if (!this.initializationPromise) {
+      this.logger.error('Service not properly initialized');
+      throw new Error('Service not properly initialized');
+    }
+
+    try {
+      await this.initializationPromise;
+      if (!this.initialized) {
+        throw new Error('Initialization failed');
+      }
+    } catch (error) {
+      this.logger.error('Failed waiting for initialization', error.stack);
+      throw error;
+    }
   }
 
+  async useNativeFunction<T>(method: string, requestParams: T) {
+    try {
+      const request: BaseFunctionRequest<T> = {
+        method: method,
+        params: requestParams,
+      };
+      const response = await this.axiosInstance.put(
+        'https://app-store-api.channel.io/general/v1/native/functions',
+        request,
+      );
+      console.log(response);
+      return response;
+    } catch (error) {
+      this.logger.error('Failed to use native function');
+      this.logger.error(error.message);
+      this.logger.error(error.stack);
+      throw error;
+    }
+  }
   /**
    * 외부 API에 커맨드를 등록하는 함수
    */
