@@ -28,7 +28,7 @@ export class ChannelApiService {
   private async initialize() {
     try {
       this.logger.log('Initializing ChannelApiService...');
-      await this.tokenService.initializeTokens();
+      await this.tokenService.getChannelToken();
 
       this.axiosInstance = axios.create({
         baseURL: this.baseUrl,
@@ -36,14 +36,7 @@ export class ChannelApiService {
 
       this.axiosInstance.interceptors.request.use(
         async (config: InternalAxiosRequestConfig) => {
-          let accessToken = await this.tokenService.getAccessToken();
-          if (!accessToken) {
-            this.logger.debug('Access token not found, initializing tokens...');
-            await this.tokenService.initializeTokens();
-            accessToken = await this.tokenService.getAccessToken();
-          }
           this.logger.debug('Adding access token to request headers');
-          config.headers['x-access-token'] = accessToken;
           return config;
         },
         (error) => {
@@ -79,17 +72,22 @@ export class ChannelApiService {
     }
   }
 
-  async useNativeFunction<T>(method: string, requestParams: T) {
+  async useNativeFunction<T>(request: BaseFunctionRequest<T>) {
     try {
-      const request: BaseFunctionRequest<T> = {
-        method: method,
-        params: requestParams,
-      };
+      // const method = request.method;
+      // const callerId = request.context.caller.id;
+      const channelId = String(request.context.channel.id);
+      const requestTokens = await this.tokenService.getChannelToken(channelId);
       const response = await this.axiosInstance.put(
         'https://app-store-api.channel.io/general/v1/native/functions',
         request,
+        {
+          headers: {
+            'x-access-token': requestTokens.accessToken,
+            'Content-Type': 'application/json',
+          },
+        },
       );
-      console.log(response);
       return response;
     } catch (error) {
       this.logger.error('Failed to use native function');
@@ -104,6 +102,7 @@ export class ChannelApiService {
   async registerCommandToChannel(command: Command) {
     try {
       this.logger.log(`Registering command: ${command.name}`);
+      const requestTokens = await this.tokenService.getChannelToken();
       await this.axiosInstance.put(
         'https://app-store-api.channel.io/general/v1/native/functions',
         {
@@ -111,6 +110,12 @@ export class ChannelApiService {
           params: {
             AppID: this.appId,
             Commands: [command],
+          },
+        },
+        {
+          headers: {
+            'x-access-token': requestTokens.accessToken,
+            'Content-Type': 'application/json',
           },
         },
       );

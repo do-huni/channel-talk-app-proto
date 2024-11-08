@@ -32,14 +32,29 @@ export class TutorialService
   async execute(
     body: BaseFunctionRequest<TutorialInput>,
   ): Promise<TutorialOutput> {
-    console.log(body);
-
-    await this.apiService.useNativeFunction('getChannel', {
-      method: 'getChannel',
+    const result = await this.apiService.useNativeFunction({
+      method: 'writeGroupMessage',
       params: {
         channelId: body.context.channel.id,
+        groupId: body.params.chat.id,
+        rootMessageId: undefined,
+        broadcast: false,
+        dto: {
+          plainText: '안녕하세요! 튜토리얼 메시지입니다.',
+          botName: 'Tutorial Bot',
+        },
+      },
+      context: {
+        channel: {
+          id: body.context.channel.id,
+        },
+        caller: {
+          type: 'user',
+          id: body.context.caller.id,
+        },
       },
     });
+    console.log(result);
     const requestParams = {
       method: 'writeGroupMessage',
       params: {
@@ -66,12 +81,10 @@ export class TutorialService
           botName: 'Tutorial Bot',
         },
       },
+      context: body.context,
     };
 
-    await this.apiService.useNativeFunction(
-      'writeGroupMessage',
-      requestParams.params,
-    );
+    await this.apiService.useNativeFunction(requestParams);
     return {
       result: {
         hello: body,

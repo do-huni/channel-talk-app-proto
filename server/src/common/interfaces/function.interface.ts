@@ -10,7 +10,7 @@ export type CallerType = (typeof CallerTypes)[keyof typeof CallerTypes];
 
 export class Channel {
   @ApiProperty()
-  id: number;
+  id: string;
 }
 
 export class Caller {
